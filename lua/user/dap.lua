@@ -60,16 +60,28 @@ dapui.setup({
 	},
 })
 
+dap.set_log_level("DEBUG")
+
+dap.configurations.python = {
+  {
+    type  = "python";
+    request = "launch";
+    name = "Launch file";
+    program = "${file}";
+    pythonPath  = function()
+      return "/usr/bin/python3"
+    end;
+  },
+}
+
+dap.adapters.python = {
+    type = 'executable',
+    command = vim.fn.stdpath('data')..'/mason/packages/debugpy/venv/bin/python',
+    args = { '-m', 'debugpy.adapter' },
+}
+
 vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DiagnosticSignError", linehl = "", numhl = "" })
 
-dap.listeners.after.event_initialized["dapui_config"] = function()
-	dapui.open()
-end
+vim.cmd [[ command! DUIopen execute 'lua require("dapui").open()']]
+vim.cmd [[ command! DUIclose execute 'lua require("dapui").close()']]
 
-dap.listeners.before.event_terminated["dapui_config"] = function()
-	dapui.close()
-end
-
-dap.listeners.before.event_exited["dapui_config"] = function()
-	dapui.close()
-end
