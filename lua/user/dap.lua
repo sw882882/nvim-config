@@ -13,6 +13,13 @@ if not dap_install_status_ok then
 	return
 end
 
+local dap_python_status_ok, dappython = pcall(require, "dap-python")
+if not dap_python_status_ok then
+  return
+end
+
+dappython.setup(vim.fn.stdpath('data')..'/mason/packages/debugpy/venv/bin/python')
+
 dap_install.setup({})
 
 dap_install.config("python", {})
