@@ -12,17 +12,22 @@ local dap_install_status_ok, dap_install = pcall(require, "dap-install")
 if not dap_install_status_ok then
 	return
 end
-
+--[[
 local dap_python_status_ok, dappython = pcall(require, "dap-python")
 if not dap_python_status_ok then
   return
 end
 
-dappython.setup(vim.fn.stdpath('data')..'/mason/packages/debugpy/venv/bin/python')
+--]]
+
+-- dappython.setup(vim.fn.stdpath('data')..'/mason/packages/debugpy/venv/bin/python')
 
 dap_install.setup({})
 
-dap_install.config("python", {})
+dap_install.config(
+	"python"
+)
+
 -- add other configs here
 
 dapui.setup({
@@ -69,23 +74,6 @@ dapui.setup({
 
 dap.set_log_level("DEBUG")
 
-dap.configurations.python = {
-  {
-    type  = "python";
-    request = "launch";
-    name = "Launch file";
-    program = "${file}";
-    pythonPath  = function()
-      return "/usr/bin/python3"
-    end;
-  },
-}
-
-dap.adapters.python = {
-    type = 'executable',
-    command = vim.fn.stdpath('data')..'/mason/packages/debugpy/venv/bin/python',
-    args = { '-m', 'debugpy.adapter' },
-}
 
 vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DiagnosticSignError", linehl = "", numhl = "" })
 
