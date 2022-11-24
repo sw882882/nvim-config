@@ -12,21 +12,10 @@ local dap_install_status_ok, dap_install = pcall(require, "dap-install")
 if not dap_install_status_ok then
 	return
 end
---[[
-local dap_python_status_ok, dappython = pcall(require, "dap-python")
-if not dap_python_status_ok then
-  return
-end
-
---]]
-
--- dappython.setup(vim.fn.stdpath('data')..'/mason/packages/debugpy/venv/bin/python')
 
 dap_install.setup({})
 
-dap_install.config(
-	"python"
-)
+dap_install.config("python", {})
 
 -- add other configs here
 
@@ -80,3 +69,14 @@ vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DiagnosticSignErro
 vim.cmd [[ command! DUIopen execute 'lua require("dapui").open()']]
 vim.cmd [[ command! DUIclose execute 'lua require("dapui").close()']]
 
+dap.listeners.after.event_initialized["dapui_config"] = function()
+	dapui.open()
+end
+
+dap.listeners.before.event_terminated["dapui_config"] = function()
+	dapui.close()
+end
+
+dap.listeners.before.event_exited["dapui_config"] = function()
+	dapui.close()
+end

@@ -1,0 +1,273 @@
+diff --git a/init.lua b/init.lua
+index 9613177..4afa710 100644
+--- a/init.lua
++++ b/init.lua
+@@ -20,4 +20,3 @@ require "user.indentline"
+ require "user.alpha"
+ require "user.lsp"
+ require "user.dap"
+-require "user.trouble"
+diff --git a/lua/user/alpha.lua b/lua/user/alpha.lua
+index 4311429..24bc3ee 100644
+--- a/lua/user/alpha.lua
++++ b/lua/user/alpha.lua
+@@ -5,18 +5,12 @@ end
+ 
+ local dashboard = require "alpha.themes.dashboard"
+ dashboard.section.header.val = {
+-  [[                                                 ]],
+-  [[                                                 ]],
+   [[                               __                ]],
+   [[  ___     ___    ___   __  __ /\_\    ___ ___    ]],
+   [[ / _ `\  / __`\ / __`\/\ \/\ \\/\ \  / __` __`\  ]],
+   [[/\ \/\ \/\  __//\ \_\ \ \ \_/ |\ \ \/\ \/\ \/\ \ ]],
+   [[\ \_\ \_\ \____\ \____/\ \___/  \ \_\ \_\ \_\ \_\]],
+   [[ \/_/\/_/\/____/\/___/  \/__/    \/_/\/_/\/_/\/_/]],
+-  [[                                                 ]],
+-  [[                                                 ]],
+-  [[                                                 ]],
+-  [[                                                 ]],
+ }
+ dashboard.section.buttons.val = {
+   dashboard.button("f", " " .. " Find file", ":Telescope find_files <CR>"),
+@@ -24,9 +18,14 @@ dashboard.section.buttons.val = {
+   dashboard.button("p", " " .. " Find project", ":lua require('telescope').extensions.projects.projects()<CR>"),
+   dashboard.button("r", " " .. " Recent files", ":Telescope oldfiles <CR>"),
+   dashboard.button("t", " " .. " Find text", ":Telescope live_grep <CR>"),
++  dashboard.button("c", " " .. " Config", ":e $MYVIMRC <CR>"),
+   dashboard.button("q", " " .. " Quit", ":qa<CR>"),
+ }
++local function footer()
++  return "chrisatmachine.com"
++end
+ 
++dashboard.section.footer.val = footer()
+ 
+ dashboard.section.footer.opts.hl = "Type"
+ dashboard.section.header.opts.hl = "Include"
+diff --git a/lua/user/colorscheme.lua b/lua/user/colorscheme.lua
+index 1c7b190..881eba5 100644
+--- a/lua/user/colorscheme.lua
++++ b/lua/user/colorscheme.lua
+@@ -1,4 +1,4 @@
+-local colorscheme = "onedark"
++local colorscheme = "tokyonight-night"
+ 
+ local status_ok, _ = pcall(vim.cmd, "colorscheme " .. colorscheme)
+ if not status_ok then
+diff --git a/lua/user/dap.lua b/lua/user/dap.lua
+index 4fbb8af..ca8d189 100644
+--- a/lua/user/dap.lua
++++ b/lua/user/dap.lua
+@@ -12,22 +12,10 @@ local dap_install_status_ok, dap_install = pcall(require, "dap-install")
+ if not dap_install_status_ok then
+ 	return
+ end
+---[[
+-local dap_python_status_ok, dappython = pcall(require, "dap-python")
+-if not dap_python_status_ok then
+-  return
+-end
+-
+---]]
+-
+--- dappython.setup(vim.fn.stdpath('data')..'/mason/packages/debugpy/venv/bin/python')
+ 
+ dap_install.setup({})
+ 
+-dap_install.config(
+-	"python"
+-)
+-
++dap_install.config("python", {})
+ -- add other configs here
+ 
+ dapui.setup({
+@@ -72,11 +60,16 @@ dapui.setup({
+ 	},
+ })
+ 
+-dap.set_log_level("DEBUG")
+-
+-
+ vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DiagnosticSignError", linehl = "", numhl = "" })
+ 
+-vim.cmd [[ command! DUIopen execute 'lua require("dapui").open()']]
+-vim.cmd [[ command! DUIclose execute 'lua require("dapui").close()']]
++dap.listeners.after.event_initialized["dapui_config"] = function()
++	dapui.open()
++end
+ 
++dap.listeners.before.event_terminated["dapui_config"] = function()
++	dapui.close()
++end
++
++dap.listeners.before.event_exited["dapui_config"] = function()
++	dapui.close()
++end
+diff --git a/lua/user/keymaps.lua b/lua/user/keymaps.lua
+index b755f6f..438011f 100644
+--- a/lua/user/keymaps.lua
++++ b/lua/user/keymaps.lua
+@@ -17,16 +17,16 @@ vim.g.mapleader = " "
+ 
+ -- Normal --
+ -- Better window navigation
+-keymap("n", "<A-h>", "<C-w>h", opts)
+-keymap("n", "<A-j>", "<C-w>j", opts)
+-keymap("n", "<A-k>", "<C-w>k", opts)
+-keymap("n", "<A-l>", "<C-w>l", opts)
++keymap("n", "<C-h>", "<C-w>h", opts)
++keymap("n", "<C-j>", "<C-w>j", opts)
++keymap("n", "<C-k>", "<C-w>k", opts)
++keymap("n", "<C-l>", "<C-w>l", opts)
+ 
+ -- Resize with arrows
+-keymap("n", "<A-Up>", ":resize -2<CR>", opts)
+-keymap("n", "<A-Down>", ":resize +2<CR>", opts)
+-keymap("n", "<A-Left>", ":vertical resize -2<CR>", opts)
+-keymap("n", "<A-Right>", ":vertical resize +2<CR>", opts)
++keymap("n", "<C-Up>", ":resize -2<CR>", opts)
++keymap("n", "<C-Down>", ":resize +2<CR>", opts)
++keymap("n", "<C-Left>", ":vertical resize -2<CR>", opts)
++keymap("n", "<C-Right>", ":vertical resize +2<CR>", opts)
+ 
+ -- Navigate buffers
+ keymap("n", "<S-l>", ":bnext<CR>", opts)
+diff --git a/lua/user/lsp/handlers.lua b/lua/user/lsp/handlers.lua
+index bbb163d..09dbe90 100644
+--- a/lua/user/lsp/handlers.lua
++++ b/lua/user/lsp/handlers.lua
+@@ -58,8 +58,8 @@ local function lsp_keymaps(bufnr)
+ 	keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
+ 	keymap(bufnr, "n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
+ 	keymap(bufnr, "n", "gI", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
+-	keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts) -- see references of what is on cursor
+-	keymap(bufnr, "n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", opts) -- see the errors
++	keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
++	keymap(bufnr, "n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", opts)
+ 	keymap(bufnr, "n", "<leader>lf", "<cmd>lua vim.lsp.buf.format{ async = true }<cr>", opts)
+ 	keymap(bufnr, "n", "<leader>li", "<cmd>LspInfo<cr>", opts)
+ 	keymap(bufnr, "n", "<leader>lI", "<cmd>LspInstallInfo<cr>", opts)
+@@ -69,7 +69,6 @@ local function lsp_keymaps(bufnr)
+ 	keymap(bufnr, "n", "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", opts)
+ 	keymap(bufnr, "n", "<leader>ls", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
+ 	keymap(bufnr, "n", "<leader>lq", "<cmd>lua vim.diagnostic.setloclist()<CR>", opts)
+-  vim.cmd [[ command! Format execute 'lua vim.lsp.buf.formatting()']]
+ end
+ 
+ M.on_attach = function(client, bufnr)
+diff --git a/lua/user/lsp/mason.lua b/lua/user/lsp/mason.lua
+index 8f39a98..af3a665 100644
+--- a/lua/user/lsp/mason.lua
++++ b/lua/user/lsp/mason.lua
+@@ -7,7 +7,6 @@ local servers = {
+ 	"bashls",
+ 	"jsonls",
+ 	"yamlls",
+-  "html",
+ }
+ 
+ local settings = {
+diff --git a/lua/user/lsp/null-ls.lua b/lua/user/lsp/null-ls.lua
+index 7cc64ff..3f24587 100644
+--- a/lua/user/lsp/null-ls.lua
++++ b/lua/user/lsp/null-ls.lua
+@@ -20,6 +20,5 @@ null_ls.setup {
+     formatting.stylua,
+     formatting.google_java_format,
+     diagnostics.flake8,
+-    --  add extra formatters here  
+   },
+ }
+diff --git a/lua/user/plugins.lua b/lua/user/plugins.lua
+index 6f95338..55733ba 100644
+--- a/lua/user/plugins.lua
++++ b/lua/user/plugins.lua
+@@ -61,7 +61,8 @@ return packer.startup(function(use)
+   use { "goolord/alpha-nvim", commit = "0bb6fc0646bcd1cdb4639737a1cee8d6e08bcc31" }
+ 
+   -- Colorschemes
+-  use "joshdick/onedark.vim"  
++  use { "folke/tokyonight.nvim", commit = "66bfc2e8f754869c7b651f3f47a2ee56ae557764" }
++  use { "lunarvim/darkplus.nvim", commit = "13ef9daad28d3cf6c5e793acfc16ddbf456e1c83" }
+ 
+   -- cmp plugins
+   use { "hrsh7th/nvim-cmp", commit = "b0dff0ec4f2748626aae13f011d1a47071fe9abc" } -- The completion plugin
+@@ -83,9 +84,6 @@ return packer.startup(function(use)
+   use { "jose-elias-alvarez/null-ls.nvim", commit = "c0c19f32b614b3921e17886c541c13a72748d450" } -- for formatters and linters
+   use { "RRethy/vim-illuminate", commit = "a2e8476af3f3e993bb0d6477438aad3096512e42" }
+ 
+-  -- error showing
+-  use { "folke/trouble.nvim" }
+-
+   -- Telescope
+   use { "nvim-telescope/telescope.nvim", commit = "76ea9a898d3307244dce3573392dcf2cc38f340f" }
+ 
+@@ -102,7 +100,7 @@ return packer.startup(function(use)
+   use { "mfussenegger/nvim-dap", commit = "6b12294a57001d994022df8acbe2ef7327d30587" }
+   use { "rcarriga/nvim-dap-ui", commit = "1cd4764221c91686dcf4d6b62d7a7b2d112e0b13" }
+   use { "ravenxrz/DAPInstall.nvim", commit = "8798b4c36d33723e7bba6ed6e2c202f84bb300de" }
+-  -- use { "mfussenegger/nvim-dap-python" }
++
+   -- Automatically set up your configuration after cloning packer.nvim
+   -- Put this at the end after all plugins
+   if PACKER_BOOTSTRAP then
+diff --git a/lua/user/toggleterm.lua b/lua/user/toggleterm.lua
+index 6f7cf9a..c6af4d5 100644
+--- a/lua/user/toggleterm.lua
++++ b/lua/user/toggleterm.lua
+@@ -4,15 +4,20 @@ if not status_ok then
+ end
+ 
+ toggleterm.setup({
+-  hide_numbers = true,
++	size = 20,
++	open_mapping = [[<c-\>]],
++	hide_numbers = true,
+ 	shade_terminals = true,
+ 	shading_factor = 2,
+ 	start_in_insert = true,
+ 	insert_mappings = true,
+ 	persist_size = true,
+-	direction = "horizontal",
++	direction = "float",
+ 	close_on_exit = true,
+ 	shell = vim.o.shell,
++	float_opts = {
++		border = "curved",
++	},
+ })
+ 
+ function _G.set_terminal_keymaps()
+diff --git a/lua/user/trouble.lua b/lua/user/trouble.lua
+deleted file mode 100644
+index 450fd66..0000000
+--- a/lua/user/trouble.lua
++++ /dev/null
+@@ -1,25 +0,0 @@
+-local trouble_status_ok, trouble = pcall(require, "trouble")
+-if not trouble_status_ok then
+-	return
+-end
+-
+-vim.keymap.set("n", "<leader>xx", "<cmd>TroubleToggle<cr>",
+-  {silent = true, noremap = true}
+-)
+-vim.keymap.set("n", "<leader>xw", "<cmd>TroubleToggle workspace_diagnostics<cr>",
+-  {silent = true, noremap = true}
+-)
+-vim.keymap.set("n", "<leader>xd", "<cmd>TroubleToggle document_diagnostics<cr>",
+-  {silent = true, noremap = true}
+-)
+-vim.keymap.set("n", "<leader>xl", "<cmd>TroubleToggle loclist<cr>",
+-  {silent = true, noremap = true}
+-)
+-vim.keymap.set("n", "<leader>xq", "<cmd>TroubleToggle quickfix<cr>",
+-  {silent = true, noremap = true}
+-)
+-vim.keymap.set("n", "gR", "<cmd>TroubleToggle lsp_references<cr>",
+-  {silent = true, noremap = true}
+-)
+-
+-trouble.setup()
