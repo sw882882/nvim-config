@@ -61,9 +61,6 @@ dapui.setup({
 	},
 })
 
-dap.set_log_level("DEBUG")
-
-
 vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DiagnosticSignError", linehl = "", numhl = "" })
 
 vim.cmd [[ command! DUIopen execute 'lua require("dapui").open()']]
